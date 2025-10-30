@@ -1,2 +1,2 @@
-print("Primera version, hola")
+print("Segunda version, hola")
 print("Hola Mundo")
