@@ -1,43 +1,73 @@
-import pygame 
+import pygame
+import constantes as const
+import random as rm
 
-#1. Inicio del programa
 pygame.init()
+pantalla = pygame.display.set_mode((const.ANCHO, const.ALTO))
+reloj = pygame.time.Clock()
+ejecutor = True
 
-#2. Configuracion de la ventana
-#Ancho
-WIDTH = 1000
-#Alto
-HEIGHT = 800
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("test")
+balas = []
 
-#El reloj controla la velocidad del juego (los FPS)
-clock = pygame.time.Clock()
 
-#Bandera para mantener el ciclo activo
-running = True
-
-#3. GAME LOOP 
-while running:
+while ejecutor:      # Bucle principal
+    
+    # Captura eventos (Teclado)
     for event in pygame.event.get():
-        #Si el usuario hace clic en la "X" de la ventana
         if event.type == pygame.QUIT:
-            running = False
+            ejecutor = False
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                nueva_bala = [const.pos_x, const.pos_y]
+                balas.append(nueva_bala)
+                
+    # logica ( movimiento, balas, colisiones)
+    
+    tecla = pygame.key.get_pressed()
+    
+    if tecla[pygame.K_a]:
+        const.pos_x -= const.vel_player
+        if const.pos_x < 0:     # limite de pantalla
+            const.pos_x = 0
+    if tecla[pygame.K_d]:
+        const.pos_x += const.vel_player
+        if const.pos_x > const.ANCHO:     # limite de pantalla
+            const.pos_x = const.ANCHO
+    if tecla[pygame.K_w]:
+        const.pos_y -= const.vel_player
+        if const.pos_y < 0:    # limite de pantalla
+            const.pos_y = 0
+    if tecla[pygame.K_s]:
+        const.pos_y += const.vel_player
+        if const.pos_y > const.ALTO:     # limite de pantalla
+            const.pos_y = const.ALTO
 
-    #Actualización de Lógica
-    #(Aquí programaremos el movimiento, colisiones y aparición de enemigos)
+    const.enemy_pos[1] += 3 * const.enemy_dir
+    if const.enemy_pos[1] > const.ALTO - 10 or const.enemy_pos[1] < 0:
+        const.enemy_dir *= -1
+    
+    for b in balas:
+        b[0] += const.vel_bal
+        if b[0] > const.ANCHO:
+            balas.remove(b)
+        if const.enemy_live:
+            if const.enemy_pos[0] < b[0] < const.enemy_pos[0] + 40 and \
+               const.enemy_pos[1] < b[1] < const.enemy_pos[1] + 40:
+                const.enemy_live = False
+                balas.remove(b)   
+                
+    # Dibujo ( Renderizado)
+    
+    for b in balas:
+        pygame.draw.circle(pantalla, (225, 225, 0), (b[0], b[1]), 3)
+        
+    pygame.draw.circle(pantalla, (0, 240, 0), (const.pos_x, const.pos_y), const.player_scale) # Jugador
+    if const.enemy_live:
+        pygame.draw.rect(pantalla, (0, 100, 0), (const.enemy_pos[0], const.enemy_pos[1], 30, 30))
+    if const.jugador_rect.colliderect(const.enemigo_rect):
+        print("piro")
+    pygame.display.flip()  # actualiza ventana
+    pantalla.fill((0, 0, 0)) # limpia ventana
+    reloj.tick(const.FPS) # FPS 
 
-    #Renderizado (Dibujar en pantalla)
-    #Limpiamos la pantalla en cada frame con un color RGB (un azul oscuro)
-    screen.fill((20, 20, 40))
-
-    #(Aquí dibujaremos las naves y balas más adelante)
-
-    #Actualizamos la pantalla completa para mostrar lo que dibujamos
-    pygame.display.flip()
-
-    #Limitamos el juego a 60 Fotogramas Por Segundo (FPS)
-    clock.tick(60)
-
-#4. Cierre del programa
 pygame.quit()
